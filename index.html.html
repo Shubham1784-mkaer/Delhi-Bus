@@ -1,0 +1,2044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Delhi Bus Ticket</title>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+:root{
+    --red:#b91c1c;
+    --dark-red:#991b1b;
+    --light-red:#fff1f1;
+    --text:#171717;
+    --muted:#737373;
+    --border:#e5e5e5;
+    --white:#fff;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f5f5f5;
+    color:var(--text);
+}
+
+/* ================= HEADER ================= */
+
+header{
+    height:68px;
+    background:var(--red);
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 7%;
+    position:sticky;
+    top:0;
+    z-index:1000;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+}
+
+.logo{
+    font-size:21px;
+    font-weight:700;
+}
+
+nav{
+    display:flex;
+    gap:5px;
+}
+
+nav button{
+    background:transparent;
+    border:none;
+    color:white;
+    padding:10px 14px;
+    border-radius:7px;
+    cursor:pointer;
+    font-size:14px;
+}
+
+nav button:hover,
+nav button.active{
+    background:rgba(255,255,255,.18);
+}
+
+/* ================= GENERAL ================= */
+
+main{
+    min-height:calc(100vh - 68px);
+}
+
+.page{
+    display:none;
+    padding:40px 7%;
+    max-width:1400px;
+    margin:auto;
+}
+
+.page.active{
+    display:block;
+}
+
+.hero{
+    text-align:center;
+    padding:35px 0;
+}
+
+.hero h1{
+    font-size:38px;
+    margin-bottom:10px;
+}
+
+.hero p{
+    color:var(--muted);
+}
+
+.section-title{
+    font-size:27px;
+    margin-bottom:8px;
+}
+
+.section-subtitle{
+    color:var(--muted);
+    margin-bottom:25px;
+}
+
+/* ================= HOME ================= */
+
+.home-cards{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:20px;
+}
+
+.home-card{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:28px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.home-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+}
+
+.card-icon{
+    width:48px;
+    height:48px;
+    background:var(--light-red);
+    color:var(--red);
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    margin-bottom:18px;
+}
+
+.home-card h3{
+    margin-bottom:8px;
+}
+
+.home-card p{
+    color:var(--muted);
+    line-height:1.5;
+}
+
+/* ================= MAP ================= */
+
+.map-container{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:15px;
+}
+
+#map{
+    width:100%;
+    height:440px;
+    border-radius:10px;
+}
+
+.location-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+}
+
+.location-status{
+    color:var(--muted);
+    font-size:14px;
+}
+
+/* ================= FORM ================= */
+
+.form-container{
+    max-width:600px;
+    margin:auto;
+}
+
+.form-card{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:15px;
+    padding:28px;
+}
+
+.form-card h3{
+    font-size:21px;
+    margin-bottom:22px;
+}
+
+.form-group{
+    margin-bottom:18px;
+}
+
+label{
+    display:block;
+    font-size:14px;
+    font-weight:600;
+    margin-bottom:7px;
+}
+
+input,
+select{
+    width:100%;
+    height:46px;
+    border:1px solid #d4d4d4;
+    border-radius:7px;
+    padding:0 13px;
+    font-size:15px;
+    outline:none;
+    background:white;
+}
+
+input:focus,
+select:focus{
+    border-color:var(--red);
+    box-shadow:0 0 0 3px rgba(185,28,28,.08);
+}
+
+.row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.button{
+    border:none;
+    background:var(--red);
+    color:white;
+    height:46px;
+    padding:0 20px;
+    border-radius:7px;
+    font-size:15px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.button:hover{
+    background:var(--dark-red);
+}
+
+.full{
+    width:100%;
+}
+
+/* ================= MY TICKETS ================= */
+
+.ticket-list{
+    max-width:750px;
+    margin:auto;
+}
+
+.no-ticket{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:45px 25px;
+    text-align:center;
+}
+
+.no-ticket h3{
+    margin-bottom:10px;
+}
+
+.no-ticket p{
+    color:var(--muted);
+    margin-bottom:20px;
+}
+
+.ticket-item{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:13px;
+    margin-bottom:15px;
+    overflow:hidden;
+}
+
+.ticket-summary{
+    padding:20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+}
+
+.ticket-summary-left h3{
+    margin-bottom:7px;
+}
+
+.ticket-summary-left p{
+    color:var(--muted);
+    font-size:14px;
+}
+
+.ticket-summary-right{
+    text-align:right;
+}
+
+.ticket-fare{
+    font-size:18px;
+    font-weight:600;
+    margin-bottom:8px;
+}
+
+.ticket-status{
+    color:#16803c;
+    font-size:13px;
+    font-weight:600;
+}
+
+.ticket-actions{
+    border-top:1px solid var(--border);
+    padding:12px 20px;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+}
+
+.small-button{
+    height:38px;
+    padding:0 15px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:white;
+    cursor:pointer;
+}
+
+.small-button.primary{
+    background:var(--red);
+    border-color:var(--red);
+    color:white;
+}
+
+/* ================= TICKET VIEW ================= */
+
+.ticket-view{
+    display:none;
+    max-width:450px;
+    margin:25px auto;
+}
+
+.ticket-view.show{
+    display:block;
+}
+
+.ticket-screen{
+    background:#c51717;
+    border-radius:13px;
+    padding:35px 18px 28px;
+    box-shadow:0 10px 35px rgba(0,0,0,.15);
+}
+
+.ticket-card{
+    background:#f9f9f9;
+    border-radius:8px;
+    padding:25px 20px 20px;
+}
+
+.ticket-heading{
+    text-align:center;
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:25px;
+}
+
+.ticket-status-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:18px;
+    margin-bottom:18px;
+}
+
+.ticket-line{
+    border:none;
+    border-top:1px solid #999;
+    margin-bottom:20px;
+}
+
+.ticket-grid{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:15px;
+    margin-bottom:19px;
+}
+
+.ticket-field label,
+.ticket-stop label{
+    font-weight:400;
+    color:#444;
+    font-size:14px;
+    margin-bottom:5px;
+}
+
+.ticket-value{
+    font-size:17px;
+    line-height:1.35;
+}
+
+.ticket-right{
+    text-align:right;
+}
+
+.ticket-stop{
+    margin-bottom:18px;
+}
+
+.ticket-reference{
+    text-align:center;
+    font-size:12px;
+    margin:15px 0;
+    word-break:break-all;
+}
+
+.qr-button{
+    width:100%;
+    height:54px;
+    border:none;
+    background:#bd1717;
+    color:white;
+    border-radius:2px;
+    font-size:17px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.validated-at{
+    background:#f9f9f9;
+    color:#a83a3a;
+    border-radius:13px;
+    padding:15px;
+    text-align:center;
+    margin:25px 25px 0;
+    font-size:15px;
+}
+
+.network{
+    text-align:center;
+    margin-top:45px;
+    color:#164f7b;
+    font-weight:700;
+}
+
+.powered{
+    text-align:center;
+    color:white;
+    font-size:12px;
+    margin-top:10px;
+}
+
+.back-button{
+    margin-bottom:15px;
+}
+
+/* ================= HELP ================= */
+
+.help-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:20px;
+}
+
+.help-item{
+    background:white;
+    border:1px solid var(--border);
+    padding:25px;
+    border-radius:13px;
+}
+
+.help-item h3{
+    margin-bottom:10px;
+}
+
+.help-item p{
+    color:var(--muted);
+    line-height:1.5;
+}
+
+/* ================= QR ================= */
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.6);
+    z-index:3000;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-box{
+    background:white;
+    border-radius:14px;
+    padding:30px;
+    text-align:center;
+    width:350px;
+}
+
+.modal-box h3{
+    margin-bottom:20px;
+}
+
+#qrcode{
+    display:flex;
+    justify-content:center;
+    margin-bottom:20px;
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:850px){
+
+    header{
+        padding:10px 15px;
+    }
+
+    .page{
+        padding:25px 15px;
+    }
+
+    .home-cards{
+        grid-template-columns:1fr;
+    }
+
+    .help-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:480px){
+
+    header{
+        height:auto;
+        flex-direction:column;
+        gap:5px;
+    }
+
+    .row{
+        grid-template-columns:1fr;
+    }
+
+    .ticket-summary{
+        align-items:flex-start;
+    }
+
+    .ticket-summary-right{
+        text-align:right;
+    }
+
+    .ticket-grid{
+        grid-template-columns:1fr auto;
+    }
+}
+
+</style>
+</head>
+
+
+<body>
+
+<header>
+
+    <div class="logo">
+        Delhi Bus
+    </div>
+
+    <nav>
+
+        <button
+            class="nav-btn active"
+            onclick="showPage('home',this)">
+            Bus
+        </button>
+
+        <button
+            class="nav-btn"
+            onclick="showPage('tickets',this)">
+            Tickets
+        </button>
+
+        <button
+            class="nav-btn"
+            onclick="showPage('myTickets',this)">
+            My Tickets
+        </button>
+
+        <button
+            class="nav-btn"
+            onclick="showPage('help',this)">
+            Help
+        </button>
+
+    </nav>
+
+</header>
+
+
+<main>
+
+<!-- ==================================================
+     HOME
+================================================== -->
+
+<section id="home" class="page active">
+
+    <div class="hero">
+
+        <h1>Delhi Bus</h1>
+
+        <p>
+            Find buses, book tickets and manage your travel.
+        </p>
+
+    </div>
+
+
+    <div class="home-cards">
+
+        <div
+            class="home-card"
+            onclick="showPageByName('bus')">
+
+            <div class="card-icon">
+                🚌
+            </div>
+
+            <h3>Bus</h3>
+
+            <p>
+                Find buses around your current location
+                using the map.
+            </p>
+
+        </div>
+
+
+        <div
+            class="home-card"
+            onclick="showPageByName('tickets')">
+
+            <div class="card-icon">
+                🎫
+            </div>
+
+            <h3>Tickets</h3>
+
+            <p>
+                Enter your journey details and generate
+                a bus ticket.
+            </p>
+
+        </div>
+
+
+        <div
+            class="home-card"
+            onclick="showPageByName('myTickets')">
+
+            <div class="card-icon">
+                🧾
+            </div>
+
+            <h3>My Tickets</h3>
+
+            <p>
+                View your generated bus tickets.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ==================================================
+     BUS
+================================================== -->
+
+<section id="bus" class="page">
+
+    <h2 class="section-title">
+        Bus
+    </h2>
+
+    <p class="section-subtitle">
+        Buses around your current location.
+    </p>
+
+
+    <div class="map-container">
+
+        <div class="location-bar">
+
+            <div
+                class="location-status"
+                id="locationStatus">
+                Location not detected.
+            </div>
+
+            <button
+                class="button"
+                onclick="locateUser()">
+                Use My Location
+            </button>
+
+        </div>
+
+        <div id="map"></div>
+
+    </div>
+
+</section>
+
+
+<!-- ==================================================
+     TICKETS / INPUT ONLY
+================================================== -->
+
+<section id="tickets" class="page">
+
+    <h2 class="section-title">
+        Bus Ticket
+    </h2>
+
+    <p class="section-subtitle">
+        Enter your journey details to generate a ticket.
+    </p>
+
+
+    <div class="form-container">
+
+        <div class="form-card">
+
+            <h3>
+                Generate Bus Ticket
+            </h3>
+
+
+            <form id="ticketForm">
+
+                <!-- ROUTE -->
+
+                <div class="form-group">
+
+                    <label>
+                        Bus Route
+                    </label>
+
+                    <input
+                        type="text"
+                        id="route"
+                        list="routeList"
+                        placeholder="Enter bus route"
+                        value="106A"
+                        required
+                    >
+
+                    <datalist id="routeList">
+
+                        <option value="106A">
+                        <option value="215">
+                        <option value="116">
+                        <option value="140">
+                        <option value="139">
+                        <option value="169">
+                        <option value="119">
+
+                    </datalist>
+
+                </div>
+
+
+                <!-- SOURCE -->
+
+                <div class="form-group">
+
+                    <label>
+                        Starting Stop
+                    </label>
+
+                    <input
+                        type="text"
+                        id="source"
+                        list="stopList"
+                        placeholder="Enter starting stop"
+                        value="Delhi Engg College Shahbad"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- DESTINATION -->
+
+                <div class="form-group">
+
+                    <label>
+                        Ending Stop
+                    </label>
+
+                    <input
+                        type="text"
+                        id="destination"
+                        list="stopList"
+                        placeholder="Enter destination stop"
+                        value="Adarsh Nagar Metro Station"
+                        required
+                    >
+
+                </div>
+
+
+                <datalist id="stopList">
+
+                    <option value="Adarsh Nagar">
+                    <option value="Adarsh Nagar Metro Station">
+                    <option value="Delhi Engg College Shahbad">
+                    <option value="Kashmere Gate Terminal">
+                    <option value="Mori Gate Terminal">
+                    <option value="Sarai Kale Khan">
+                    <option value="Sarai Peepal Thala">
+
+                </datalist>
+
+
+                <!-- BUS TYPE -->
+
+                <div class="form-group">
+
+                    <label>
+                        Bus Type
+                    </label>
+
+                    <select id="busType">
+
+                        <option value="Non-AC">
+                            Non-AC
+                        </option>
+
+                        <option value="AC">
+                            AC
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- NUMBER + FARE -->
+
+                <div class="row">
+
+                    <div class="form-group">
+
+                        <label>
+                            Number of Tickets
+                        </label>
+
+                        <select id="ticketsCount">
+
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Fare (₹)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="fare"
+                            value="20"
+                            min="0"
+                            step="0.5"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="button full">
+                    Generate Ticket
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ==================================================
+     MY TICKETS
+================================================== -->
+
+<section id="myTickets" class="page">
+
+    <h2 class="section-title">
+        My Tickets
+    </h2>
+
+    <p class="section-subtitle">
+        Your generated bus tickets.
+    </p>
+
+
+    <div
+        id="ticketList"
+        class="ticket-list">
+    </div>
+
+
+    <!-- FULL TICKET VIEW -->
+
+    <div
+        id="ticketView"
+        class="ticket-view">
+
+        <button
+            class="button back-button"
+            onclick="closeTicketView()">
+            ← Back to My Tickets
+        </button>
+
+
+        <div class="ticket-screen">
+
+            <div class="ticket-card">
+
+                <div class="ticket-heading">
+                    Transport Dept. of Delhi
+                </div>
+
+
+                <div class="ticket-status-row">
+
+                    <span>
+                        VALIDATED
+                    </span>
+
+                    <span id="viewTotal">
+                        ₹20.0
+                    </span>
+
+                </div>
+
+
+                <hr class="ticket-line">
+
+
+                <div class="ticket-grid">
+
+                    <div class="ticket-field">
+
+                        <label>
+                            Bus Route
+                        </label>
+
+                        <div
+                            class="ticket-value"
+                            id="viewRoute">
+                        </div>
+
+                    </div>
+
+
+                    <div class="ticket-field ticket-right">
+
+                        <label>
+                            Fare
+                        </label>
+
+                        <div
+                            class="ticket-value"
+                            id="viewFare">
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="ticket-grid">
+
+                    <div class="ticket-field">
+
+                        <label>
+                            Booking Time
+                        </label>
+
+                        <div
+                            class="ticket-value"
+                            id="viewTime">
+                        </div>
+
+                    </div>
+
+
+                    <div class="ticket-field ticket-right">
+
+                        <label>
+                            Bus Tickets
+                        </label>
+
+                        <div
+                            class="ticket-value"
+                            id="viewCount">
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="ticket-stop">
+
+                    <label>
+                        Starting stop
+                    </label>
+
+                    <div
+                        class="ticket-value"
+                        id="viewSource">
+                    </div>
+
+                </div>
+
+
+                <div class="ticket-stop">
+
+                    <label>
+                        Ending stop
+                    </label>
+
+                    <div
+                        class="ticket-value"
+                        id="viewDestination">
+                    </div>
+
+                </div>
+
+
+                <div class="ticket-stop">
+
+                    <label>
+                        Bus Type
+                    </label>
+
+                    <div
+                        class="ticket-value"
+                        id="viewBusType">
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="ticket-reference"
+                    id="viewReference">
+                </div>
+
+
+                <button
+                    class="qr-button"
+                    onclick="showQR()">
+
+                    <span>▦</span>
+                    Show QR code
+
+                </button>
+
+            </div>
+
+
+            <div
+                class="validated-at"
+                id="viewValidatedAt">
+            </div>
+
+
+            <div class="network">
+                ONEC NETWORK
+            </div>
+
+            <div class="powered">
+                Powered by IIT Delhi
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ==================================================
+     HELP
+================================================== -->
+
+<section id="help" class="page">
+
+    <h2 class="section-title">
+        Help
+    </h2>
+
+    <p class="section-subtitle">
+        Information about using the bus ticket system.
+    </p>
+
+
+    <div class="help-grid">
+
+        <div class="help-item">
+
+            <h3>
+                How to generate a ticket?
+            </h3>
+
+            <p>
+                Open Bus Ticket, enter your journey
+                details and select Generate Ticket.
+                Your ticket will automatically appear
+                under My Tickets.
+            </p>
+
+        </div>
+
+
+        <div class="help-item">
+
+            <h3>
+                Where can I find my ticket?
+            </h3>
+
+            <p>
+                Open the My Tickets option from the
+                navigation menu to see all your generated
+                tickets.
+            </p>
+
+        </div>
+
+
+        <div class="help-item">
+
+            <h3>
+                Bus Type
+            </h3>
+
+            <p>
+                You can select either AC or Non-AC
+                while generating a ticket.
+            </p>
+
+        </div>
+
+
+        <div class="help-item">
+
+            <h3>
+                Ticket Quantity
+            </h3>
+
+            <p>
+                You can generate tickets for 1, 2 or
+                3 passengers.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+</main>
+
+
+<!-- ==================================================
+     QR MODAL
+================================================== -->
+
+<div
+    class="modal"
+    id="qrModal">
+
+    <div class="modal-box">
+
+        <h3>
+            Bus Ticket QR Code
+        </h3>
+
+        <div id="qrcode"></div>
+
+        <button
+            class="button"
+            onclick="closeQR()">
+            Close
+        </button>
+
+    </div>
+
+</div>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+<script>
+
+/* ==================================================
+   PAGE NAVIGATION
+================================================== */
+
+function showPage(pageId, button){
+
+    document
+        .querySelectorAll(".page")
+        .forEach(page => {
+            page.classList.remove("active");
+        });
+
+    document
+        .getElementById(pageId)
+        .classList.add("active");
+
+
+    document
+        .querySelectorAll(".nav-btn")
+        .forEach(btn => {
+            btn.classList.remove("active");
+        });
+
+
+    if(button){
+        button.classList.add("active");
+    }
+
+
+    if(pageId === "bus"){
+
+        setTimeout(() => {
+
+            if(map){
+                map.invalidateSize();
+            }
+
+        },200);
+
+    }
+
+
+    if(pageId === "myTickets"){
+        renderTickets();
+    }
+
+}
+
+
+function showPageByName(pageId){
+
+    const buttons =
+        document.querySelectorAll(".nav-btn");
+
+    if(pageId === "bus"){
+        showPage("bus",buttons[0]);
+    }
+
+    else if(pageId === "tickets"){
+        showPage("tickets",buttons[1]);
+    }
+
+    else if(pageId === "myTickets"){
+        showPage("myTickets",buttons[2]);
+    }
+
+    else if(pageId === "help"){
+        showPage("help",buttons[3]);
+    }
+
+}
+
+
+/* ==================================================
+   MAP
+================================================== */
+
+let map;
+let userMarker;
+
+
+function initializeMap(){
+
+    map = L.map("map")
+        .setView([28.6139,77.2090],11);
+
+
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            maxZoom:19,
+            attribution:
+                "&copy; OpenStreetMap contributors"
+        }
+    ).addTo(map);
+
+
+    L.marker([28.6139,77.2090])
+        .addTo(map)
+        .bindPopup("Delhi")
+        .openPopup();
+
+}
+
+
+function locateUser(){
+
+    const status =
+        document.getElementById("locationStatus");
+
+
+    if(!navigator.geolocation){
+
+        status.innerText =
+            "Geolocation is not supported.";
+
+        return;
+    }
+
+
+    status.innerText =
+        "Detecting your location...";
+
+
+    navigator.geolocation.getCurrentPosition(
+
+        function(position){
+
+            const lat =
+                position.coords.latitude;
+
+            const lng =
+                position.coords.longitude;
+
+
+            map.setView(
+                [lat,lng],
+                15
+            );
+
+
+            if(userMarker){
+                map.removeLayer(userMarker);
+            }
+
+
+            userMarker =
+                L.marker([lat,lng])
+                .addTo(map)
+                .bindPopup("Your Location")
+                .openPopup();
+
+
+            status.innerText =
+                "Your location detected.";
+
+        },
+
+
+        function(){
+
+            status.innerText =
+                "Unable to access your location.";
+
+        }
+
+    );
+
+}
+
+
+/* ==================================================
+   DATE & TIME
+================================================== */
+
+function getCurrentDateTime(){
+
+    const now = new Date();
+
+
+    const months = [
+        "Jan","Feb","Mar","Apr",
+        "May","Jun","Jul","Aug",
+        "Sep","Oct","Nov","Dec"
+    ];
+
+
+    let hours = now.getHours();
+
+    const minutes =
+        String(now.getMinutes())
+        .padStart(2,"0");
+
+
+    const ampm =
+        hours >= 12 ? "PM" : "AM";
+
+
+    hours =
+        hours % 12 || 12;
+
+
+    const day =
+        String(now.getDate())
+        .padStart(2,"0");
+
+
+    const month =
+        months[now.getMonth()];
+
+
+    const year =
+        String(now.getFullYear())
+        .slice(-2);
+
+
+    return `${day} ${month}, ${year} | ${String(hours).padStart(2,"0")}:${minutes} ${ampm}`;
+
+}
+
+
+/* ==================================================
+   REFERENCE NUMBER
+================================================== */
+
+function generateReference(){
+
+    const now = new Date();
+
+    const day =
+        String(now.getDate())
+        .padStart(2,"0");
+
+    const month =
+        String(now.getMonth()+1)
+        .padStart(2,"0");
+
+    const year =
+        now.getFullYear();
+
+
+    const random =
+        Math.random()
+        .toString(16)
+        .substring(2,10);
+
+
+    return `T${day}${month}${year}${random}`;
+
+}
+
+
+/* ==================================================
+   GET SAVED TICKETS
+================================================== */
+
+function getTickets(){
+
+    return JSON.parse(
+        localStorage.getItem("busTickets") || "[]"
+    );
+
+}
+
+
+/* ==================================================
+   SAVE TICKETS
+================================================== */
+
+function saveTickets(tickets){
+
+    localStorage.setItem(
+        "busTickets",
+        JSON.stringify(tickets)
+    );
+
+}
+
+
+/* ==================================================
+   GENERATE TICKET
+================================================== */
+
+document
+    .getElementById("ticketForm")
+    .addEventListener("submit",function(event){
+
+        event.preventDefault();
+
+
+        const route =
+            document.getElementById("route")
+            .value.trim();
+
+
+        const source =
+            document.getElementById("source")
+            .value.trim();
+
+
+        const destination =
+            document.getElementById("destination")
+            .value.trim();
+
+
+        const busType =
+            document.getElementById("busType")
+            .value;
+
+
+        const count =
+            document.getElementById("ticketsCount")
+            .value;
+
+
+        const fare =
+            parseFloat(
+                document.getElementById("fare")
+                .value
+            );
+
+
+        if(
+            !route ||
+            !source ||
+            !destination ||
+            isNaN(fare)
+        ){
+
+            alert(
+                "Please complete all ticket details."
+            );
+
+            return;
+        }
+
+
+        const bookingTime =
+            getCurrentDateTime();
+
+
+        const ticket = {
+
+            id:
+                Date.now(),
+
+            route:
+                route,
+
+            source:
+                source,
+
+            destination:
+                destination,
+
+            busType:
+                busType,
+
+            count:
+                count,
+
+            fare:
+                fare.toFixed(1),
+
+            bookingTime:
+                bookingTime,
+
+            reference:
+                generateReference()
+
+        };
+
+
+        /* Get existing tickets */
+
+        const tickets =
+            getTickets();
+
+
+        /* Add newest ticket first */
+
+        tickets.unshift(ticket);
+
+
+        /* Save */
+
+        saveTickets(tickets);
+
+
+        /*
+         * IMPORTANT:
+         * Do NOT display ticket here.
+         * Take user directly to My Tickets.
+         */
+
+        showPageByName("myTickets");
+
+
+        renderTickets();
+
+
+        /*
+         * Automatically open the newly generated ticket
+         */
+
+        setTimeout(() => {
+
+            viewTicket(ticket.id);
+
+        },100);
+
+    });
+
+
+/* ==================================================
+   RENDER MY TICKETS
+================================================== */
+
+function renderTickets(){
+
+    const container =
+        document.getElementById("ticketList");
+
+
+    const tickets =
+        getTickets();
+
+
+    container.innerHTML = "";
+
+
+    /*
+     * Hide detailed ticket whenever
+     * My Tickets is opened.
+     */
+
+    document
+        .getElementById("ticketView")
+        .classList.remove("show");
+
+
+    if(tickets.length === 0){
+
+        container.innerHTML = `
+
+            <div class="no-ticket">
+
+                <h3>
+                    No Tickets Yet
+                </h3>
+
+                <p>
+                    Your generated bus tickets will
+                    appear here.
+                </p>
+
+                <button
+                    class="button"
+                    onclick="showPageByName('tickets')">
+
+                    Generate Ticket
+
+                </button>
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    tickets.forEach(ticket => {
+
+        const item =
+            document.createElement("div");
+
+
+        item.className =
+            "ticket-item";
+
+
+        item.innerHTML = `
+
+            <div class="ticket-summary">
+
+                <div class="ticket-summary-left">
+
+                    <h3>
+                        Route ${escapeHTML(ticket.route)}
+                    </h3>
+
+                    <p>
+                        ${escapeHTML(ticket.source)}
+                        →
+                        ${escapeHTML(ticket.destination)}
+                    </p>
+
+                    <p style="margin-top:5px">
+
+                        ${escapeHTML(ticket.bookingTime)}
+
+                    </p>
+
+                </div>
+
+
+                <div class="ticket-summary-right">
+
+                    <div class="ticket-fare">
+                        ₹${escapeHTML(ticket.fare)}
+                    </div>
+
+                    <div class="ticket-status">
+                        VALIDATED
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="ticket-actions">
+
+                <button
+                    class="small-button"
+                    onclick="deleteTicket(${ticket.id})">
+
+                    Delete
+
+                </button>
+
+
+                <button
+                    class="small-button primary"
+                    onclick="viewTicket(${ticket.id})">
+
+                    View Ticket
+
+                </button>
+
+            </div>
+
+        `;
+
+
+        container.appendChild(item);
+
+    });
+
+}
+
+
+/* ==================================================
+   VIEW TICKET
+================================================== */
+
+let selectedTicket = null;
+
+
+function viewTicket(id){
+
+    const tickets =
+        getTickets();
+
+
+    const ticket =
+        tickets.find(t => t.id === id);
+
+
+    if(!ticket){
+        return;
+    }
+
+
+    selectedTicket =
+        ticket;
+
+
+    /* Fill ticket */
+
+    document.getElementById("viewTotal")
+        .innerText =
+        "₹" + ticket.fare;
+
+
+    document.getElementById("viewRoute")
+        .innerText =
+        ticket.route;
+
+
+    document.getElementById("viewFare")
+        .innerText =
+        "₹" + ticket.fare;
+
+
+    document.getElementById("viewTime")
+        .innerText =
+        ticket.bookingTime;
+
+
+    document.getElementById("viewCount")
+        .innerText =
+        ticket.count;
+
+
+    document.getElementById("viewSource")
+        .innerText =
+        ticket.source;
+
+
+    document.getElementById("viewDestination")
+        .innerText =
+        ticket.destination;
+
+
+    document.getElementById("viewBusType")
+        .innerText =
+        ticket.busType;
+
+
+    document.getElementById("viewReference")
+        .innerText =
+        ticket.reference;
+
+
+    document.getElementById("viewValidatedAt")
+        .innerText =
+        "Validated At: " +
+        ticket.bookingTime;
+
+
+    /* Hide ticket list */
+
+    document
+        .getElementById("ticketList")
+        .style.display = "none";
+
+
+    /* Show ticket */
+
+    document
+        .getElementById("ticketView")
+        .classList.add("show");
+
+}
+
+
+/* ==================================================
+   CLOSE TICKET
+================================================== */
+
+function closeTicketView(){
+
+    document
+        .getElementById("ticketView")
+        .classList.remove("show");
+
+
+    document
+        .getElementById("ticketList")
+        .style.display = "block";
+
+
+    renderTickets();
+
+}
+
+
+/* ==================================================
+   DELETE TICKET
+================================================== */
+
+function deleteTicket(id){
+
+    const confirmDelete =
+        confirm(
+            "Do you want to delete this ticket?"
+        );
+
+
+    if(!confirmDelete){
+        return;
+    }
+
+
+    let tickets =
+        getTickets();
+
+
+    tickets =
+        tickets.filter(
+            ticket => ticket.id !== id
+        );
+
+
+    saveTickets(tickets);
+
+
+    renderTickets();
+
+}
+
+
+/* ==================================================
+   QR CODE
+================================================== */
+
+function showQR(){
+
+    if(!selectedTicket){
+        return;
+    }
+
+
+    const modal =
+        document.getElementById("qrModal");
+
+
+    const container =
+        document.getElementById("qrcode");
+
+
+    container.innerHTML = "";
+
+
+    const qrData =
+        JSON.stringify(selectedTicket);
+
+
+    new QRCode(
+        container,
+        {
+            text:qrData,
+            width:220,
+            height:220,
+            correctLevel:
+                QRCode.CorrectLevel.M
+        }
+    );
+
+
+    modal.classList.add("show");
+
+}
+
+
+function closeQR(){
+
+    document
+        .getElementById("qrModal")
+        .classList.remove("show");
+
+}
+
+
+document
+    .getElementById("qrModal")
+    .addEventListener(
+        "click",
+        function(event){
+
+            if(event.target === this){
+                closeQR();
+            }
+
+        }
+    );
+
+
+/* ==================================================
+   HTML ESCAPE
+================================================== */
+
+function escapeHTML(value){
+
+    return String(value)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+/* ==================================================
+   START
+================================================== */
+
+initializeMap();
+
+renderTickets();
+
+</script>
+
+</body>
+</html>
