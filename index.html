@@ -362,23 +362,90 @@ select:focus{
     color:white;
 }
 
-/* ================= TICKET VIEW ================= */
+
+/* ================= FULL SCREEN TICKET VIEW ================= */
 
 .ticket-view{
     display:none;
-    max-width:450px;
-    margin:25px auto;
 }
 
 .ticket-view.show{
-    display:block;
+    display:flex;
+    position:fixed;
+    inset:0;
+    width:100vw;
+    height:100vh;
+    max-width:none;
+    margin:0;
+    padding:0;
+    background:#c51717;
+    z-index:9999;
+    overflow-y:auto;
+    justify-content:center;
+    align-items:stretch;
 }
 
 .ticket-screen{
+    position:relative;
+    width:100%;
+    max-width:520px;
+    min-height:100vh;
     background:#c51717;
-    border-radius:13px;
-    padding:35px 18px 28px;
-    box-shadow:0 10px 35px rgba(0,0,0,.15);
+    border-radius:0;
+    padding:75px 18px 30px;
+    box-shadow:none;
+}
+
+.ticket-card{
+    background:#f9f9f9;
+    border-radius:8px;
+    padding:25px 20px 20px;
+}
+
+/* Top controls */
+
+.ticket-close{
+    position:fixed;
+    top:18px;
+    left:20px;
+    z-index:10001;
+
+    width:42px;
+    height:42px;
+
+    border:none;
+    border-radius:50%;
+
+    background:rgba(255,255,255,.95);
+    color:#333;
+
+    font-size:28px;
+    line-height:42px;
+
+    cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+
+.all-tickets-button{
+    position:fixed;
+    top:18px;
+    right:20px;
+    z-index:10001;
+
+    height:42px;
+    padding:0 16px;
+
+    border:none;
+    border-radius:21px;
+
+    background:rgba(255,255,255,.95);
+    color:#c51717;
+
+    font-size:14px;
+    font-weight:600;
+
+    cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,.2);
 }
 
 .ticket-card{
@@ -965,11 +1032,18 @@ select:focus{
         id="ticketView"
         class="ticket-view">
 
-        <button
-            class="button back-button"
-            onclick="closeTicketView()">
-            ← Back to My Tickets
-        </button>
+<button
+    class="ticket-close"
+    onclick="closeTicketView()"
+    aria-label="Close ticket">
+    ×
+</button>
+
+<button
+    class="all-tickets-button"
+    onclick="closeTicketView()">
+    All Tickets
+</button>
 
 
         <div class="ticket-screen">
